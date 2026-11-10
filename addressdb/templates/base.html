@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Addresses{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">Addresses</a>
+    <nav>
+      <a href="{{ url_for('new') }}" class="button primary">+ New address</a>
+      <a href="{{ url_for('import_') }}">Import</a>
+      <a href="{{ url_for('export', fmt='csv') }}">Export CSV</a>
+      <a href="{{ url_for('export', fmt='json') }}">Export JSON</a>
+      <a href="{{ url_for('duplicates') }}">Duplicates</a>
+    </nav>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<p class="flash {{ cat }}" role="status">{{ msg }}</p>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

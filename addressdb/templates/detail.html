@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ a.display_name }} · Addresses{% endblock %}
+{% block content %}
+<article class="card">
+  <h1>{{ a.display_name }}</h1>
+  <pre class="label" aria-label="Mailing label">{{ a.formatted() }}</pre>
+  <dl>
+    {% if a.phone %}<dt>Phone</dt><dd><a href="tel:{{ a.phone }}">{{ a.phone }}</a></dd>{% endif %}
+    {% if a.email %}<dt>Email</dt><dd><a href="mailto:{{ a.email }}">{{ a.email }}</a></dd>{% endif %}
+    {% if a.tags %}<dt>Tags</dt><dd>{% for t in a.tag_list %}<a class="tag" href="{{ url_for('index', tag=t) }}">{{ t }}</a>{% endfor %}</dd>{% endif %}
+    {% if a.notes %}<dt>Notes</dt><dd class="notes">{{ a.notes }}</dd>{% endif %}
+    <dt>Added</dt><dd>{{ a.created_at|when }}</dd>
+    <dt>Updated</dt><dd>{{ a.updated_at|when }}</dd>
+  </dl>
+  <div class="actions">
+    <a class="button primary" href="{{ url_for('edit', address_id=a.id) }}">Edit</a>
+    <form method="post" action="{{ url_for('delete', address_id=a.id) }}" data-confirm="Delete {{ a.display_name }}? This can't be undone.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="danger">Delete</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back to list</a>
+  </div>
+</article>
+{% endblock %}

@@ -9,7 +9,7 @@ import sqlite3
 from dataclasses import dataclass, field, asdict, fields
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import IO, Iterable, Optional
 
 SCHEMA_VERSION = 1
 
@@ -133,7 +133,7 @@ def validate(addr: Address) -> Address:
 class AddressDB:
     def __init__(self, path: str | Path = "addresses.db"):
         self.path = str(path)
-        self.conn = sqlite3.connect(self.path)
+        self.conn = sqlite3.connect(self.path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
         self.conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
@@ -275,21 +275,26 @@ class AddressDB:
         return [[self.get(int(i)) for i in r["ids"].split(",")] for r in rows]
 
     # -- import / export -------------------------------------------------
-    def export_csv(self, path: str | Path) -> int:
+    def write_csv(self, fh: IO[str]) -> int:
         records = self.list(order_by="id")
-        names = [f.name for f in fields(Address)]
-        with open(path, "w", newline="", encoding="utf-8") as fh:
-            writer = csv.DictWriter(fh, fieldnames=names)
-            writer.writeheader()
-            for r in records:
-                writer.writerow(r.to_dict())
+        writer = csv.DictWriter(fh, fieldnames=[f.name for f in fields(Address)])
+        writer.writeheader()
+        for r in records:
+            writer.writerow(r.to_dict())
         return len(records)
 
-    def export_json(self, path: str | Path) -> int:
+    def write_json(self, fh: IO[str]) -> int:
         records = [r.to_dict() for r in self.list(order_by="id")]
-        with open(path, "w", encoding="utf-8") as fh:
-            json.dump(records, fh, indent=2, ensure_ascii=False)
+        json.dump(records, fh, indent=2, ensure_ascii=False)
         return len(records)
+
+    def export_csv(self, path: str | Path) -> int:
+        with open(path, "w", newline="", encoding="utf-8") as fh:
+            return self.write_csv(fh)
+
+    def export_json(self, path: str | Path) -> int:
+        with open(path, "w", encoding="utf-8") as fh:
+            return self.write_json(fh)
 
     def import_records(self, records: Iterable[dict]) -> tuple[int, list[str]]:
         """Insert records; returns (imported_count, error_messages).
@@ -312,13 +317,22 @@ class AddressDB:
                 imported += 1
         return imported, errors
 
+    def read_csv(self, fh: IO[str]) -> tuple[int, list[str]]:
+        return self.import_records(csv.DictReader(fh))
+
+    def read_json(self, fh: IO[str]) -> tuple[int, list[str]]:
+        try:
+            data = json.load(fh)
+        except json.JSONDecodeError as e:
+            raise ValidationError(f"invalid JSON: {e}") from e
+        if not isinstance(data, list) or not all(isinstance(d, dict) for d in data):
+            raise ValidationError("JSON import must be a list of objects")
+        return self.import_records(data)
+
     def import_csv(self, path: str | Path) -> tuple[int, list[str]]:
         with open(path, newline="", encoding="utf-8-sig") as fh:
-            return self.import_records(csv.DictReader(fh))
+            return self.read_csv(fh)
 
     def import_json(self, path: str | Path) -> tuple[int, list[str]]:
         with open(path, encoding="utf-8") as fh:
-            data = json.load(fh)
-        if not isinstance(data, list):
-            raise ValidationError("JSON import must be a list of objects")
-        return self.import_records(data)
+            return self.read_json(fh)

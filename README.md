@@ -1,9 +1,23 @@
 # addressdb
 
-A small address database: SQLite storage, a Python API, and a command-line tool.
-It uses only the Python standard library (3.9+), so there's nothing to install.
+A small address database: a web app, a command-line tool, and a Python API, all sharing one SQLite file.
 
-## CLI
+## Web app
+
+```bash
+pip install -r requirements.txt     # Flask; the CLI and Python API need nothing extra
+python -m addressdb.web             # then open http://127.0.0.1:5000
+python -m addressdb.web --db ~/my-addresses.db --port 8000
+```
+
+You can list, search, filter by tag, sort, add, edit, and delete addresses (deleting asks first), import CSV or JSON by upload, export CSV or JSON as a download, and find duplicates. It works on phones (each address becomes a card) and follows the system dark mode.
+
+**Security: there is no login.** The server listens only on `127.0.0.1` (this computer) by default. Don't run it with `--host 0.0.0.0` on a network you don't fully trust, because anyone who can reach it can read and delete everything. Forms are protected against cross-site request forgery, all output is HTML-escaped, and a strict Content-Security-Policy is set. Flask's built-in server is for one person's use, not for production hosting.
+
+## Command line
+
+The command line uses only the Python standard library (3.9+).
+
 
 ```bash
 python -m addressdb add --first Ada --last Lovelace --street "12 St James's Sq" \

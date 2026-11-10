@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New address' if mode == 'new' else 'Edit ' ~ a.display_name }} · Addresses{% endblock %}
+{% block content %}
+<h1>{{ 'New address' if mode == 'new' else 'Edit ' ~ a.display_name }}</h1>
+<form method="post" class="card grid-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% macro field(name, label, type='text', wide=false, auto='') -%}
+    <label class="{{ 'wide' if wide }}">{{ label }}
+      <input type="{{ type }}" name="{{ name }}" value="{{ a[name] }}" {% if auto %}autocomplete="{{ auto }}"{% endif %}>
+    </label>
+  {%- endmacro %}
+  <fieldset>
+    <legend>Who <span class="muted">(at least one of these)</span></legend>
+    {{ field('first_name', 'First name', auto='given-name') }}
+    {{ field('last_name', 'Last name', auto='family-name') }}
+    {{ field('company', 'Company', wide=true, auto='organization') }}
+  </fieldset>
+  <fieldset>
+    <legend>Address</legend>
+    {{ field('street', 'Street', wide=true, auto='address-line1') }}
+    {{ field('street2', 'Street line 2', wide=true, auto='address-line2') }}
+    {{ field('postal_code', 'Postal code', auto='postal-code') }}
+    {{ field('city', 'City', auto='address-level2') }}
+    {{ field('state', 'State / region', auto='address-level1') }}
+    {{ field('country', 'Country', auto='country-name') }}
+  </fieldset>
+  <fieldset>
+    <legend>Contact</legend>
+    {{ field('phone', 'Phone', type='tel', auto='tel') }}
+    {{ field('email', 'Email', type='email', auto='email') }}
+    {{ field('tags', 'Tags (comma-separated)', wide=true) }}
+    <label class="wide">Notes<textarea name="notes" rows="3">{{ a.notes }}</textarea></label>
+  </fieldset>
+  <div class="actions">
+    <button type="submit" class="primary">{{ 'Add address' if mode == 'new' else 'Save changes' }}</button>
+    <a href="{{ url_for('detail', address_id=a.id) if a.id else url_for('index') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

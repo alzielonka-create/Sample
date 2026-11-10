@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Import · Addresses{% endblock %}
+{% block content %}
+<h1>Import addresses</h1>
+<form method="post" enctype="multipart/form-data" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p>Upload a UTF-8 <strong>CSV</strong> (first row is the header) or a <strong>JSON</strong> list of objects, up to 5 MB.
+     Recognized columns: <code>first_name, last_name, company, street, street2, city, state, postal_code, country, phone, email, tags, notes</code>.
+     Other columns are ignored. Records are added; nothing existing is changed.</p>
+  <input type="file" name="file" accept=".csv,.json,text/csv,application/json" required>
+  <div class="actions"><button type="submit" class="primary">Import</button></div>
+</form>
+{% if errors %}
+<section class="card">
+  <h2>{{ errors|length }} row(s) skipped</h2>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

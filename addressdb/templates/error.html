@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} · Addresses{% endblock %}
+{% block content %}
+<div class="empty"><h1>Error {{ code }}</h1><p>{{ message }}</p><p><a href="{{ url_for('index') }}">Back to the list</a></p></div>
+{% endblock %}

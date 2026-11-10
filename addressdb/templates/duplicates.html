@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Duplicates · Addresses{% endblock %}
+{% block content %}
+<h1>Possible duplicates</h1>
+<p class="muted">Records with the same name, company, street, and postal code (ignoring upper/lower case).</p>
+{% for group in groups %}
+  <section class="card">
+    <ul>{% for a in group %}<li><a href="{{ url_for('detail', address_id=a.id) }}">{{ a.display_name }}</a> · {{ a.street }} {{ a.postal_code }} {{ a.city }} <span class="muted">(added {{ a.created_at|when }})</span></li>{% endfor %}</ul>
+  </section>
+{% else %}
+  <p class="empty">No duplicates found.</p>
+{% endfor %}
+{% endblock %}
